@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전기차 배터리 재활용 시장 분석 대시보드</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Pretendard (Korean Default for modern UI) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22',
+                        },
+                        gray: {
+                            50: '#F9FAFB',
+                            100: '#F3F4F6',
+                            200: '#E5E7EB',
+                            300: '#D1D5DB',
+                            400: '#9CA3AF',
+                            500: '#6B7280',
+                            600: '#4B5563',
+                            700: '#374151',
+                            800: '#1F2937',
+                            900: '#111827',
+                            950: '#030712',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar for minimalistic look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; 
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex h-full z-10">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
+            <i data-lucide="battery-charging" class="w-6 h-6 mr-2 text-primary-600"></i>
+            <span class="font-bold text-lg tracking-tight">EV Battery Data</span>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+            <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-4">Dashboards</p>
+            <a href="#" onclick="switchTab('overview')" id="nav-overview" class="nav-item flex items-center px-2 py-2 text-sm font-medium rounded-md bg-primary-50 text-primary-700">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3"></i>
+                종합 요약 (Overview)
+            </a>
+            <a href="#" onclick="switchTab('market')" id="nav-market" class="nav-item flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-primary-50 hover:text-primary-700 transition-colors">
+                <i data-lucide="table-2" class="w-4 h-4 mr-3"></i>
+                시장 규모 및 전망
+            </a>
+            <a href="#" onclick="switchTab('policy')" id="nav-policy" class="nav-item flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-primary-50 hover:text-primary-700 transition-colors">
+                <i data-lucide="gavel" class="w-4 h-4 mr-3"></i>
+                정책 및 규제 타임라인
+            </a>
+            
+            <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-8">Raw Data</p>
+            <a href="#" onclick="switchTab('rawdata')" id="nav-rawdata" class="nav-item flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-primary-50 hover:text-primary-700 transition-colors">
+                <i data-lucide="database" class="w-4 h-4 mr-3"></i>
+                전체 원본 데이터 (CSV)
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs">
+                    WD
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">Web Designer</p>
+                    <p class="text-xs text-gray-500">System Admin</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 z-10">
+            <div class="flex items-center md:hidden">
+                <button class="text-gray-500 hover:text-gray-900 focus:outline-none p-2">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <span class="ml-2 font-bold text-lg tracking-tight">EV Battery Data</span>
+            </div>
+            
+            <div class="hidden md:flex items-center text-sm text-gray-500">
+                <span>데이터 대시보드</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 mx-2"></i>
+                <span id="breadcrumb-current" class="text-gray-900 font-medium">종합 요약</span>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button class="flex items-center text-sm text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 px-3 py-1.5 rounded-md transition-colors shadow-sm font-medium">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                    리포트 추출
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            
+            <!-- SECTION: OVERVIEW -->
+            <div id="section-overview" class="tab-content fade-in block">
+                <div class="w-full h-48 md:h-64 mb-8 rounded-xl overflow-hidden shadow-sm border border-gray-200">
+                    <img src="https://images.unsplash.com/photo-1740158404435-6ca48addcb6c?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                         alt="Battery Recycling Factory" 
+                         class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
+                </div>
+
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">시장 통합 요약</h1>
+                    <p class="text-sm text-gray-500 mt-1">핵심 지표 및 주요 세그먼트 비중을 한눈에 파악합니다.</p>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between">
+                            총 데이터 건수
+                            <i data-lucide="database" class="w-4 h-4 text-primary-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 tracking-tight">33<span class="text-lg font-normal text-gray-500 ml-1">건</span></div>
+                        <div class="mt-2 text-xs text-gray-500">분석 기관: 총 15개 고유 기관</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between">
+                            2040 글로벌 재활용 시장
+                            <i data-lucide="trending-up" class="w-4 h-4 text-primary-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 tracking-tight">~200<span class="text-lg font-normal text-gray-500 ml-1">조 원</span></div>
+                        <div class="mt-2 text-xs text-gray-500">SNE Research 기준 전망치</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between">
+                            2030 사용후 배터리 발생
+                            <i data-lucide="car" class="w-4 h-4 text-primary-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 tracking-tight">414<span class="text-lg font-normal text-gray-500 ml-1">만 대</span></div>
+                        <div class="mt-2 text-xs text-gray-500">전기차 초기 모델 수명 종료 도래</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between">
+                            시장 평균 성장률 (CAGR)
+                            <i data-lucide="activity" class="w-4 h-4 text-primary-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-900 tracking-tight">21~61<span class="text-lg font-normal text-gray-500 ml-1">%</span></div>
+                        <div class="mt-2 text-xs text-gray-500">기관 및 세그먼트별 상이</div>
+                    </div>
+                </div>
+
+                <!-- Minimalist Typography Section (As requested in planning doc) -->
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-8">
+                    <div class="px-6 py-5 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-900 tracking-tight">원료/세그먼트 비중 변화 (2022 기준)</h3>
+                        <p class="text-sm text-gray-500">복잡한 차트를 배제한 직관적 비율 데이터 제공</p>
+                    </div>
+                    <div class="p-8 flex flex-col md:flex-row items-center justify-center gap-12">
+                        <!-- Main Number -->
+                        <div class="text-center">
+                            <div class="text-7xl font-bold text-gray-900 tracking-tighter mb-2">71.36<span class="text-3xl text-gray-400">%</span></div>
+                            <div class="text-sm font-semibold text-gray-600 uppercase tracking-widest">생산 스크랩 (Production Scrap)</div>
+                            <p class="text-xs text-gray-500 mt-2 max-w-xs mx-auto">초기 시장 구조는 기가팩토리 제조 공정에서 발생하는 스크랩이 주도</p>
+                        </div>
+                        
+                        <!-- Simple visual separator -->
+                        <div class="hidden md:block w-px h-32 bg-gray-200"></div>
+                        <div class="md:hidden w-full h-px bg-gray-200"></div>
+
+                        <!-- Secondary Number -->
+                        <div class="text-center opacity-60 hover:opacity-100 transition-opacity">
+                            <div class="text-5xl font-bold text-gray-900 tracking-tighter mb-2">28.64<span class="text-xl text-gray-400">%</span></div>
+                            <div class="text-sm font-semibold text-gray-600 uppercase tracking-widest">사용후 배터리 (End-of-Life)</div>
+                            <p class="text-xs text-gray-500 mt-2 max-w-xs mx-auto">2030년 이후 본격적인 점유율 역전 및 증가 예상</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Simple Bar Chart (HTML/CSS Based) -->
+                    <div class="px-8 pb-8">
+                        <div class="w-full h-4 flex rounded-full overflow-hidden bg-gray-100">
+                            <div class="bg-primary-600 h-full transition-all duration-1000 ease-out" style="width: 71.36%" title="생산 스크랩: 71.36%"></div>
+                            <div class="bg-primary-200 h-full transition-all duration-1000 ease-out" style="width: 28.64%" title="사용후 배터리: 28.64%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
+                            <span>생산 스크랩 (71.36%)</span>
+                            <span>사용후 배터리 (28.64%)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chemistry Simple Comparison -->
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">배터리 화학 조성별 경제성 (Bullet Graph UI 대용)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border-l-4 border-primary-600 pl-4 py-1">
+                            <h4 class="font-bold text-gray-900 text-lg mb-1">삼원계 (NCM, NCA 등)</h4>
+                            <p class="text-sm text-gray-600 mb-2">리튬, 니켈, 코발트 등 고부가가치 금속 다량 함유. 현재 재활용 경제성의 핵심 동인.</p>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
+                                경제성 매우 높음
+                            </span>
+                        </div>
+                        <div class="border-l-4 border-gray-300 pl-4 py-1">
+                            <h4 class="font-bold text-gray-900 text-lg mb-1">LFP (리튬인산철)</h4>
+                            <p class="text-sm text-gray-600 mb-2">상대적으로 저렴한 철, 인 활용. 블랙매스 가치가 낮아 공정 혁신 및 규제 기반 처리 필요.</p>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                경제성 한계 / 공정 혁신 중
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: DATA TABLE -->
+            <div id="section-market" class="tab-content fade-in hidden">
+                <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">기관별 시장 규모 및 전망</h1>
+                        <p class="text-sm text-gray-500 mt-1">숫자 정렬(우측 정렬)이 엄격히 적용된 고도화된 데이터 표입니다.</p>
+                    </div>
+                    <!-- Quick Filters Mockup -->
+                    <div class="flex space-x-2">
+                        <select class="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-900">
+                            <option>전체 데이터 세그먼트</option>
+                            <option>글로벌 재활용 시장</option>
+                            <option>2차 수명 시장</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">분석 기관 / 출처명</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">데이터 세그먼트</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">기준 연도 (규모)</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">전망 연도 (규모)</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">CAGR (연평균성장률)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">Grand View Research</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">글로벌 전기차 배터리 재활용 시장</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-medium">$0.23 Billion</div>
+                                        <div class="text-xs text-gray-500">2022년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-bold">$10.45 Billion</div>
+                                        <div class="text-xs text-gray-500">2030년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-primary-700 text-right font-mono font-bold bg-primary-50">
+                                        61.7%
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">Spherical Insights</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">글로벌 전기차 배터리 재활용 시장</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-medium">$0.42 Billion</div>
+                                        <div class="text-xs text-gray-500">2022년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-bold">$38.71 Billion</div>
+                                        <div class="text-xs text-gray-500">2032년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-primary-700 text-right font-mono font-bold bg-primary-50">
+                                        57.2%
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">Fortune Business Insights</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">글로벌 전기차 배터리 재활용 시장</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-medium">$589.8 Million</div>
+                                        <div class="text-xs text-gray-500">2025년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-bold">$2.27 Billion</div>
+                                        <div class="text-xs text-gray-500">2032년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-primary-700 text-right font-mono font-bold bg-primary-50">
+                                        21.2%
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">Research and Markets</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">순수 EV 배터리 재활용 시장</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-medium">$3.82 Billion</div>
+                                        <div class="text-xs text-gray-500">2025년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-bold">-</div>
+                                        <div class="text-xs text-gray-500">2030년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono font-bold text-gray-400 bg-gray-50">
+                                        -
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">보고서 내 시장 분석</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2차 수명 EV 배터리 시장</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-medium">$1.7 Billion</div>
+                                        <div class="text-xs text-gray-500">2026년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                        <div class="font-bold">$1.26 Billion</div>
+                                        <div class="text-xs text-gray-500">2035년</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-primary-700 text-right font-mono font-bold bg-primary-50">
+                                        일시적 조정
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 text-xs text-gray-500">
+                        * 결측치(데이터 없음)는 '-'로 표기되었습니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: POLICY & REGULATION -->
+            <div id="section-policy" class="tab-content fade-in hidden">
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">규제 및 정책 타임라인</h1>
+                    <p class="text-sm text-gray-500 mt-1">간트 차트를 대체하는 텍스트/리스트형 스텝 UI입니다.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- EU Battery Regulation -->
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 relative">
+                        <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                            <span class="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center mr-3 text-sm">EU</span>
+                            유럽연합 (EU) 신배터리법 의무화
+                        </h3>
+                        
+                        <div class="relative border-l border-gray-200 ml-4 space-y-8 pb-4">
+                            <div class="relative pl-6">
+                                <div class="absolute -left-1.5 top-1.5 w-3 h-3 bg-primary-600 rounded-full ring-4 ring-white"></div>
+                                <div class="font-bold text-gray-900 text-lg mb-1">2027년</div>
+                                <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded border border-gray-100">
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li>배터리 여권(Battery Passport) 도입 의무화</li>
+                                        <li>폐배터리 내 핵심 광물 회수율 목표 적용 시작</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="relative pl-6">
+                                <div class="absolute -left-1.5 top-1.5 w-3 h-3 bg-primary-400 rounded-full ring-4 ring-white"></div>
+                                <div class="font-bold text-gray-900 text-lg mb-1">2031년</div>
+                                <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded border border-gray-100">
+                                    <p class="font-medium text-gray-800 mb-1">재생원료 의무 사용 비율 적용:</p>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li>리튬 (Lithium): <strong class="text-gray-900">12%</strong></li>
+                                        <li>니켈 (Nickel): <strong class="text-gray-900">4%</strong></li>
+                                        <li>코발트 (Cobalt): <strong class="text-gray-900">16%</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="relative pl-6">
+                                <div class="absolute -left-1.5 top-1.5 w-3 h-3 bg-primary-200 rounded-full ring-4 ring-white"></div>
+                                <div class="font-bold text-gray-900 text-lg mb-1">2036년</div>
+                                <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded border border-gray-100">
+                                    <p class="font-medium text-gray-800 mb-1">재생원료 의무 사용 비율 강화:</p>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li>리튬 의무 비율 상향 조정 등 생태계 완전 순환 체계 구축</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- US IRA -->
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 relative">
+                        <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                            <span class="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center mr-3 text-sm">US</span>
+                            미국 인플레이션 감축법 (IRA)
+                        </h3>
+                        
+                        <div class="relative border-l border-gray-200 ml-4 space-y-8 pb-4">
+                            <div class="relative pl-6">
+                                <div class="absolute -left-1.5 top-1.5 w-3 h-3 bg-primary-600 rounded-full ring-4 ring-white"></div>
+                                <div class="font-bold text-gray-900 text-lg mb-1">현재 ~ 진행중</div>
+                                <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded border border-gray-100">
+                                    <ul class="list-disc list-inside space-y-2">
+                                        <li>배터리 부품 및 핵심 광물 원산지 요건 충족 시 보조금 지급</li>
+                                        <li><strong class="text-gray-900">북미 내 재활용 광물:</strong> 원산지 요건을 충족하는 것으로 간주되어 역내 재활용 산업 육성 강력 지원</li>
+                                        <li>레드우드 머티리얼즈 등 혁신 스타트업 중심의 밸류체인 구축 가속화</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="relative pl-6">
+                                <div class="absolute -left-1.5 top-1.5 w-3 h-3 bg-gray-200 rounded-full ring-4 ring-white"></div>
+                                <div class="font-bold text-gray-400 text-lg mb-1">향후 과제</div>
+                                <div class="text-sm text-gray-500 bg-gray-50 p-3 rounded border border-gray-100 border-dashed">
+                                    FEOC(해외우려집단) 규정 회피를 위한 공급망 다변화 및 역내 리사이클링 시설 확충 지속 필요
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: RAW DATA -->
+            <div id="section-rawdata" class="tab-content fade-in hidden">
+                <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">전체 원본 데이터 (CSV)</h1>
+                        <p class="text-sm text-gray-500 mt-1">대시보드 시각화에 사용된 원천 데이터(Raw Data) 파일 목록입니다.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                    <ul class="divide-y divide-gray-200">
+                        <li class="p-4 sm:px-6 hover:bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between transition-colors gap-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded bg-primary-50 text-primary-600 flex items-center justify-center mr-4 shrink-0">
+                                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 break-all">전기차_배터리_재활용_시장조사_권장사항반영_요약추가.csv</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">총 33건 데이터 통합본 | 24 KB</p>
+                                </div>
+                            </div>
+                            <button class="shrink-0 flex items-center justify-center text-sm text-primary-700 bg-primary-50 border border-primary-100 hover:bg-primary-100 px-4 py-2 rounded-md transition-colors font-medium">
+                                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                다운로드
+                            </button>
+                        </li>
+                        <li class="p-4 sm:px-6 hover:bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between transition-colors gap-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded bg-gray-100 text-gray-500 flex items-center justify-center mr-4 shrink-0">
+                                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 break-all">시장_전망치_기관별_RawData_2024.csv</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">시장 규모 및 CAGR 원본 데이터 | 12 KB</p>
+                                </div>
+                            </div>
+                            <button class="shrink-0 flex items-center justify-center text-sm text-primary-700 bg-primary-50 border border-primary-100 hover:bg-primary-100 px-4 py-2 rounded-md transition-colors font-medium">
+                                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                다운로드
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- UI Logic Script -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Simple Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            
+            // Reset Nav styling
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-primary-50', 'text-primary-700');
+                el.classList.add('text-gray-600', 'hover:bg-primary-50', 'hover:text-primary-700');
+            });
+
+            // Show selected content
+            const content = document.getElementById(`section-${tabId}`);
+            if(content) {
+                content.classList.remove('hidden');
+                content.classList.add('block');
+            }
+
+            // Highlight selected nav
+            const nav = document.getElementById(`nav-${tabId}`);
+            if(nav) {
+                nav.classList.remove('text-gray-600', 'hover:bg-primary-50', 'hover:text-primary-700');
+                nav.classList.add('bg-primary-50', 'text-primary-700');
+                
+                // Update Breadcrumb
+                document.getElementById('breadcrumb-current').innerText = nav.innerText.trim();
+            }
+        }
+    </script>
+</body>
+</html>
